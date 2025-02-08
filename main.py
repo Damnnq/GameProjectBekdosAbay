@@ -2,7 +2,7 @@ import pygame
 import random
 import time
 
-# Initialize Pygame
+# pygame start
 pygame.init()
 
 # windows
