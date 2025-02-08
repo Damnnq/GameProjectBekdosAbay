@@ -2,18 +2,18 @@ import pygame
 import random
 import time
 
-# pygame
+# Initialize Pygame
 pygame.init()
 
-# window
+# Set the dimensions of the window
 window_width = 800
 window_height = 600
 
-# display
+# Set up the display
 window = pygame.display.set_mode((window_width, window_height))
 pygame.display.set_caption('Arcade Ball Game')
 
-# colors
+# Define colors
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
@@ -21,25 +21,25 @@ blue = (0, 0, 255)
 green = (0, 255, 0)
 yellow = (255, 255, 0)
 
-# fps
+# Set the frames per second
 fps = 60
 clock = pygame.time.Clock()
 
-# ball properties
+# Ball properties
 ball_radius = 10
 ball_x = window_width // 2
 ball_y = window_height // 2
 ball_dx = 5
 ball_dy = -5  # Make the ball start by moving upwards
 
-# player paddle
+# Player paddle properties
 paddle_width = 100
 paddle_height = 10
 paddle_x = (window_width - paddle_width) // 2
 paddle_y = window_height - paddle_height - 10
 paddle_dx = 10
 
-# state
+# Game state
 game_over = False
 score = 0
 start_time = time.time()
@@ -49,23 +49,23 @@ photo_appearance_interval = 10  # Photos appear every 10 seconds
 photo_disappearance_interval = 5  # Photos disappear after 5 seconds
 last_photo_appearance_time = start_time
 
-# font
+# Font
 font = pygame.font.SysFont(None, 55)
 small_font = pygame.font.SysFont(None, 35)
 
-# sounds
-bounce_sound = pygame.mixer.Sound('bounce.wav')
+# Load sounds
+bounce_sound = pygame.mixer.Sound('assets/bounce.wav')
 
-# images
-photo1 = pygame.image.load('photo1.png')
-photo2 = pygame.image.load('photo2.png')
+# Load images
+photo1 = pygame.image.load('assets/photo1.png')
+photo2 = pygame.image.load('assets/photo2.png')
 photo_size = (50, 50)
 photo1 = pygame.transform.scale(photo1, photo_size)
 photo2 = pygame.transform.scale(photo2, photo_size)
 photo_positions = []
 photos_visible = False
 
-# particle properties
+# Particle properties
 particles = []
 
 def show_game_over():
@@ -130,7 +130,36 @@ def remove_photos():
     global photos_visible
     photos_visible = False
 
-# loop
+def menu():
+    menu_text = font.render('Arcade Ball Game', True, black)
+    start_button_text = font.render('Start', True, green)
+    quit_button_text = font.render('Quit', True, red)
+    start_button_rect = start_button_text.get_rect(center=(window_width // 2, window_height // 2))
+    quit_button_rect = quit_button_text.get_rect(center=(window_width // 2, window_height // 2 + 100))
+
+    while True:
+        window.fill(white)
+        window.blit(menu_text, (window_width // 2 - menu_text.get_width() // 2, window_height // 2 - 200))
+        window.blit(start_button_text, start_button_rect)
+        window.blit(quit_button_text, quit_button_rect)
+        pygame.draw.rect(window, green, start_button_rect.inflate(20, 10), 2)
+        pygame.draw.rect(window, red, quit_button_rect.inflate(20, 10), 2)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if start_button_rect.collidepoint(mouse_x, mouse_y):
+                    return
+                if quit_button_rect.collidepoint(mouse_x, mouse_y):
+                    pygame.quit()
+                    exit()
+
+# Main game loop
+menu()
 running = True
 while running:
     for event in pygame.event.get():
@@ -148,11 +177,11 @@ while running:
         paddle_x += paddle_dx
 
     if not game_over:
-        # ball movement
+        # Move the ball
         ball_x += ball_dx
         ball_y += ball_dy
 
-        # ball collision walls
+        # Ball collision with walls
         if ball_x <= ball_radius or ball_x >= window_width - ball_radius:
             ball_dx = -ball_dx
             bounce_sound.play()
@@ -160,7 +189,7 @@ while running:
             ball_dy = -ball_dy
             bounce_sound.play()
 
-        # ball collision paddle
+        # Ball collision with paddle
         if (paddle_y <= ball_y + ball_radius <= paddle_y + paddle_height and
                 paddle_x <= ball_x <= paddle_x + paddle_width):
             ball_dy = -ball_dy
@@ -168,51 +197,51 @@ while running:
             bounce_sound.play()
             create_particles(ball_x, ball_y)
 
-        # ball things
+        # Ball goes out of bounds
         if ball_y >= window_height - ball_radius:
             game_over = True
 
-        # increase difficulty over time
+        # Increase difficulty over time
         current_time = time.time()
         if current_time - last_difficulty_increase_time >= difficulty_increase_interval:
             increase_difficulty()
             last_difficulty_increase_time = current_time
 
-        # photo things
+        # Handle photo appearance and disappearance
         if current_time - last_photo_appearance_time >= photo_appearance_interval:
             add_photos()
             last_photo_appearance_time = current_time
         elif current_time - last_photo_appearance_time >= photo_disappearance_interval:
             remove_photos()
 
-    # clears the screen
+    # Clear the screen
     window.fill(white)
 
     if game_over:
         restart_button_rect = show_game_over()
     else:
-        # ball
+        # Draw the ball
         pygame.draw.circle(window, red, (ball_x, ball_y), ball_radius)
 
-        # paddle
+        # Draw the paddle
         pygame.draw.rect(window, blue, (paddle_x, paddle_y, paddle_width, paddle_height))
 
-        # score and timer
+        # Draw the score and timer
         draw_score_and_timer()
 
-        # particles
+        # Draw particles
         draw_particles()
 
-        # photos
+        # Draw photos
         if photos_visible:
             for photo, pos in photo_positions:
                 window.blit(photo, pos)
 
-    # update
+    # Update the display
     pygame.display.update()
 
-    # fps
+    # Cap the frame rate
     clock.tick(fps)
 
-# quit
+# Quit Pygame
 pygame.quit()
